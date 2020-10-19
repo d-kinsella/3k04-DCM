@@ -1,34 +1,35 @@
 <div id={{mode}}-form class="param-container" style="display:none;">
-    <form action="http://localhost:5000/submit-params/{{mode}}" method="post">
+    <form class="parameter-form" action="http://localhost:5000/submit-params/{{mode}}" method="post">
 
         <h2>Enter Parameters for {{mode}}</h2>
         {% if failed %}
             <u> <h3> Unable to update parameters </h3> </u>
         {% endif %}
-        <p>Serial Port</p>
+        <h4>Serial Port</h4>
         <input type="text" name="serial_port" placeholder="USB5">
-        <p>Lower Rate Limit</p>
+        <h4>Lower Rate Limit</h4>
         <input type="text" name="lower_rate_limit" placeholder="50">
-        <p>Upper Rate Limit</p>
+        <h4>Upper Rate Limit</h4>
         <input type="text" name="upper_rate_limit" placeholder="50">
 
         {% if mode[0] == "A" %}
-            <p>Atrial Amplitude</p>
+            <h4>Atrial Amplitude</h4>
             <input type="text" name="atrial_amplitude" placeholder="50">
-            <p>Atrial Pulse Width</p>
+            <h4>Atrial Pulse Width</h4>
             <input type="text" name="atrial_pulse_width" placeholder="50">
-            <p>Atrial Refractory Period (ARP)</p>
+            <h4>Atrial Refractory Period (ARP)</h4>
             <input type="text" name="arp" placeholder="50">
 
         {% elif mode[0] == "V" %}
-            <p>Ventricle Amplitude</p>
+            <h4>Ventricle Amplitude</h4>
             <input type="text" name="ventricle_amplitude" placeholder="50">
-            <p>Ventricle Pulse Width</p>
+            <h4>Ventricle Pulse Width</h4>
             <input type="text" name="ventricle_pulse_width" placeholder="50">
-            <p>Ventricle Refractory Period (VRP)</p>
+            <h4>Ventricle Refractory Period (VRP)</h4>
             <input type="text" name="vrp" placeholder="50">
         {% endif %}
-
+        <br>
+        <br>
         <input type="submit" value="submit">
     </form>
 </div>

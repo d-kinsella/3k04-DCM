@@ -97,6 +97,7 @@ def dcm_landing():
 @app.route('/submit-params/<mode>', methods=['POST'])
 def submit_params(mode):
     invalid_parameters = check_invalid_parameters(request.form, mode)
+    print(invalid_parameters)
     if invalid_parameters:
         return redirect(url_for("submit_status",
                                 success_status=False,
