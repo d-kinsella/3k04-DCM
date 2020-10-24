@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+import sqlite3
 import serial
+import database as db
 
 # Placeholder parameter ranges
 parameter_ranges = {
@@ -16,6 +18,8 @@ parameter_ranges = {
 # Set up the server
 app = Flask(__name__)
 app.secret_key = b'!@#$RFBNKOI*&^%RESXCVBNKLOI*&^%ESXCVBNK<BVCDERTYHJ'
+app.config['DATABASE'] = './data/db.sql'
+db.init_db(app)
 
 # Set up the serial output, port isn't set
 # so that the user can input it later
@@ -27,6 +31,24 @@ ser.baudrate = 19200
 @app.route('/')
 def landing_page():
     return redirect(url_for('login'))
+
+
+@app.route('/signup', methods=['POST', 'GET'])
+def signup():
+    if request.method == "GET":
+        return render_template('signup.html', failed=False)
+
+    if request.method == "POST":
+        if db.get_user_count() < 10:
+            return render_template('signup.html', failed=True)
+        if request.form['username'] and request.form['password']:
+            try:
+                db.create_user((request.form['username'], request.form['password']))
+                return redirect(url_for('login'))
+            except sqlite3.IntegrityError as e:
+                print(e)
+                return render_template('signup.html', failed=True)
+        return render_template('signup.html', failed=True)
 
 
 # If user navigates to /login (method == get), serve the login
@@ -50,18 +72,14 @@ def login():
 
         if user:
             session["user"] = user
-            return redirect('dcm/')
+            return redirect(url_for("dcm_landing"))
         else:
             return redirect(url_for('login_failed'))
 
 
 def check_credentials(username, password):
-    # temporary user list until database is implemented
-    users = {
-        'username': 'password'
-    }
-
-    if username in users and users[username] == password:
+    check_username = db.query_user(username)
+    if check_username and check_username['password'] == password:
         return username
     else:
         return False
@@ -80,12 +98,21 @@ def logout():
 
 # Show the user the page with dcm settings. Clicking a different mode
 # shows a different submission form with the valid parameters (see dcm_home.html)
-@app.route('/dcm/', methods=['GET'])
+@app.route('/dcm', methods=['GET'])
 def dcm_landing():
     if "user" not in session:
         return redirect(url_for("landing_page"))
     else:
-        return render_template('dcm_home.html', user=session["user"])
+        user_current_params = db.get_user_params(session["user"])
+        print(False if 'success' not in request.args else request.args['success'])
+        return render_template('dcm_home.html',
+                               user=session["user"],
+                               current_params=user_current_params,
+                               success=
+                               False if 'success' not in request.args else request.args['success'],
+                               invalid_parameters=
+                               [] if 'invalid_parameters' not in request.args else request.args['invalid_parameters']
+                               )
 
 
 # After submitting a form on the dcm page, the results are posted here.
@@ -97,12 +124,39 @@ def dcm_landing():
 @app.route('/submit-params/<mode>', methods=['POST'])
 def submit_params(mode):
     invalid_parameters = check_invalid_parameters(request.form, mode)
+    print("invalid_parameters")
     print(invalid_parameters)
     if invalid_parameters:
         return redirect(url_for("submit_status",
                                 success_status=False,
                                 invalid_parameters=invalid_parameters)
                         )
+    if mode[0] == 'A':
+        parameters = (
+            mode,
+            request.form['lower_rate_limit'],
+            request.form['upper_rate_limit'],
+            request.form['atrial_amplitude'],
+            request.form['atrial_pulse_width'],
+            request.form['arp'],
+            '',
+            '',
+            ''
+        )
+    elif mode[0] == 'V':
+        parameters = (
+            mode,
+            request.form['lower_rate_limit'],
+            request.form['upper_rate_limit'],
+            '',
+            '',
+            '',
+            request.form['ventricle_amplitude'],
+            request.form['ventricle_pulse_width'],
+            request.form['vrp']
+        )
+    db.create_parameters(parameters, session['user'])
+
     # TODO: This is where to put the serial stuff
     print(request.form)
     ser.port = request.form['serial_port']
@@ -128,8 +182,9 @@ def check_invalid_parameters(parameters, mode):
              "vrp"]
 
     for param in parameters_to_check:
-        if parameters[param] == "" or (int(parameters[param]) < parameter_ranges[param][0] \
-                                       or int(parameters[param]) > parameter_ranges[param][1]):
+        if parameters[param] == "" or not parameters[param].isdecimal() or \
+                    (int(parameters[param]) < parameter_ranges[param][0] or
+                     int(parameters[param]) > parameter_ranges[param][1]):
             invalid_parameters += param.replace('_', ' ') + ', '
     return invalid_parameters[:-2]
 
@@ -137,10 +192,9 @@ def check_invalid_parameters(parameters, mode):
 # Confirm if the user's submission is valid or not
 @app.route('/submit-params/result', methods=['GET'])
 def submit_status():
-    return render_template('dcm_home.html',
-                           user=session["user"],
-                           success=request.args['success_status'],
-                           invalid_parameters=request.args['invalid_parameters'])
+    return redirect(url_for('dcm_landing',
+                            success=request.args['success_status'],
+                            invalid_parameters=request.args['invalid_parameters']))
 
 
 if __name__ == '__main__':
