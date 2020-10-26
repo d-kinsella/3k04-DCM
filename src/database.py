@@ -6,6 +6,7 @@ def get_num_users():
     cursor = get_db().execute('SELECT COUNT(*) FROM users')
     result = cursor.fetchone()
     cursor.close()
+    print('Number of users: %s' % result[0])
     return result[0]
 
 

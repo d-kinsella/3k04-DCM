@@ -39,7 +39,7 @@ def signup():
         return render_template('signup.html', failed=False)
 
     if request.method == "POST":
-        if db.get_user_count() < 10:
+        if db.get_num_users() >= 10:
             return render_template('signup.html', failed=True)
         if request.form['username'] and request.form['password']:
             try:
