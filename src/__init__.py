@@ -33,6 +33,8 @@ def landing_page():
     return redirect(url_for('login'))
 
 
+# Add a new user and add them to the database
+# If database is full or the user already exists then the registration will fail
 @app.route('/signup', methods=['POST', 'GET'])
 def signup():
     if request.method == "GET":
