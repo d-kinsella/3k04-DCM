@@ -10,7 +10,7 @@
         <form class="signup-form" action="http://localhost:5000/signup" method="post">
             <h1>Register a new user</h1>
             {% if failed == True %}
-                <u> <h3> Signup attempt failed, try again </h3> </u>
+                <u> <h3> Signup attempt failed due to {{ error_msg }}, try again </h3> </u>
             {% endif %}
             <input type="text" name="username" placeholder="username">
             <br>

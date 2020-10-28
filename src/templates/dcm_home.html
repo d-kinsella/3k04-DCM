@@ -7,11 +7,24 @@
 </head>
 <body>
     <div class="body-container">
+        {% if device_connection %}
+            <h3>Device connected: {{device_connection}}</h3>
+        {% else %}
+            <h3>No device detected </h3>
+        {% endif %}
+        <form action="http://localhost:5000/dcm" method="get">
+            <input type="submit" value="Refresh Device Status">
+        </form>
         <h1>Select Operating Mode</h1>
         {% if success == "True"%}
             <p>Submission Successful</p>
-        {% elif invalid_parameters %}
+        {% elif success == "False" %}
+            {% if invalid_parameters %}
                 <p><u>Invalid {{invalid_parameters}}</u> undefined or out of range</p>
+            {% endif %}
+            {% if not device_connection %}
+                <p><u>No device detected</u></p>
+            {% endif %}
         {% endif %}
         {% for type in ["AOO","VOO","AAI","VVI"] %}
             <input type="button" value={{type}} onclick=includeHTML("{{type}}")>

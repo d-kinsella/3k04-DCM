@@ -42,15 +42,15 @@ def signup():
 
     if request.method == "POST":
         if db.get_num_users() >= 10:
-            return render_template('signup.html', failed=True)
+            return render_template('signup.html', failed=True, error_msg="too many users registered")
         if request.form['username'] and request.form['password']:
             try:
                 db.create_user((request.form['username'], request.form['password']))
                 return redirect(url_for('login'))
             except sqlite3.IntegrityError as e:
                 print(e)
-                return render_template('signup.html', failed=True)
-        return render_template('signup.html', failed=True)
+                return render_template('signup.html', failed=True, error_msg="user already exists")
+        return render_template('signup.html', failed=True, error_msg="unknown error")
 
 
 # If user navigates to /login (method == get), serve the login
@@ -95,6 +95,7 @@ def login_failed():
 @app.route('/logout', methods=['POST'])
 def logout():
     session.pop("user")
+    session.pop("device_connection")
     return redirect(url_for("landing_page"))
 
 
@@ -105,9 +106,10 @@ def dcm_landing():
     if "user" not in session:
         return redirect(url_for("landing_page"))
     else:
+        session['device_connection'] = get_device_connection()
         user_current_params = db.get_user_params(session["user"])
-        print(False if 'success' not in request.args else request.args['success'])
         return render_template('dcm_home.html',
+                               device_connection=session['device_connection'],
                                user=session["user"],
                                current_params=user_current_params,
                                success=
@@ -115,6 +117,11 @@ def dcm_landing():
                                invalid_parameters=
                                [] if 'invalid_parameters' not in request.args else request.args['invalid_parameters']
                                )
+
+
+def get_device_connection():
+    # TODO Serial identification of connected device
+    return 100000000
 
 
 # After submitting a form on the dcm page, the results are posted here.
@@ -128,8 +135,9 @@ def submit_params(mode):
     invalid_parameters = check_invalid_parameters(request.form, mode)
     print("invalid_parameters")
     print(invalid_parameters)
-    if invalid_parameters:
+    if invalid_parameters or not session['device_connection']:
         return redirect(url_for("submit_status",
+                                device_connection=session['device_connection'],
                                 success_status=False,
                                 invalid_parameters=invalid_parameters)
                         )
@@ -157,7 +165,7 @@ def submit_params(mode):
             request.form['ventricle_pulse_width'],
             request.form['vrp']
         )
-    db.create_parameters(parameters, session['user'])
+    db.create_parameters(parameters, session['user'], session['device_connection'])
 
     # TODO: This is where to put the serial stuff
     print(request.form)
@@ -195,6 +203,7 @@ def check_invalid_parameters(parameters, mode):
 @app.route('/submit-params/result', methods=['GET'])
 def submit_status():
     return redirect(url_for('dcm_landing',
+                            device_connection=session['device_connection'],
                             success=request.args['success_status'],
                             invalid_parameters=request.args['invalid_parameters']))
 
