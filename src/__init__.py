@@ -107,7 +107,7 @@ def dcm_landing():
         return redirect(url_for("landing_page"))
     else:
         session['device_connection'] = get_device_connection()
-        user_current_params = db.get_user_params(session["user"])
+        user_current_params = db.get_user_params(session["user"], session["device_connection"])
         return render_template('dcm_home.html',
                                device_connection=session['device_connection'],
                                user=session["user"],

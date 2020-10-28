@@ -10,11 +10,15 @@ def get_num_users():
     return result[0]
 
 
-def get_user_params(user):
-    cursor = get_db().execute('SELECT * FROM parameters WHERE id=(SELECT id FROM users WHERE username=?)', (user,))
-    result = cursor.fetchone()
-    cursor.close()
-    return result
+def get_user_params(user, device_connection):
+    try:
+        cursor = get_db().execute('SELECT * FROM parameters WHERE user_id='
+                                  '(SELECT id FROM users WHERE username=?) AND device_id=?', (user,device_connection))
+        result = cursor.fetchone()
+        cursor.close()
+        return result
+    except sqlite3.OperationalError as e:
+        return None
 
 
 def query_user(user):
@@ -24,22 +28,39 @@ def query_user(user):
     return result
 
 
-def create_parameters(parameter_data, user):
+def create_parameters(parameter_data, user, device_id):
     db = get_db()
     cursor = db.cursor()
 
-    sql_query = '''UPDATE parameters
-                SET mode=?,
-                lower_rate_limit=?,
-                upper_rate_limit=?,
-                atrial_amplitude=?,
-                atrial_pulse_width=?,
-                arp=?,
-                ventricle_amplitude=?,
-                ventricle_pulse_width=?,
-                vrp=?
-                WHERE id=(SELECT id FROM users WHERE username=?)'''
-    parameters = parameter_data + (user,)
+    sql_query = ''' 
+        INSERT INTO parameters 
+        (
+            user_id,
+            device_id,
+            mode,
+            lower_rate_limit,
+            upper_rate_limit,
+            atrial_amplitude,
+            atrial_pulse_width,
+            arp,
+            ventricle_amplitude,
+            ventricle_pulse_width,
+            vrp
+        )
+        VALUES((SELECT id FROM users WHERE username=?),?,?,?,?,?,?,?,?,?,?)
+        ON CONFLICT (user_id, device_id) DO UPDATE SET 
+            mode=?,
+            lower_rate_limit=?,
+            upper_rate_limit=?,
+            atrial_amplitude=?,
+            atrial_pulse_width=?,
+            arp=?,
+            ventricle_amplitude=?,
+            ventricle_pulse_width=?,
+            vrp=?
+    '''
+
+    parameters = (user, device_id) + parameter_data + parameter_data
     cursor.execute(sql_query, parameters)
     db.commit()
 
@@ -51,16 +72,6 @@ def create_user(user_data):
                 ')VALUES(?,?)'
     cursor = db.cursor()
     cursor.execute(sql_query, user_data)
-    db.commit()
-
-    db = get_db()
-    sql_query = 'INSERT INTO parameters(' \
-                'mode,lower_rate_limit,upper_rate_limit,atrial_amplitude,' \
-                'atrial_pulse_width,arp,ventricle_amplitude,ventricle_pulse_width,vrp' \
-                ')VALUES(?,?,?,?,?,?,?,?,?)'
-    cursor = db.cursor()
-    cursor.execute(sql_query, ("", "", "", "", "", "", "", "", ""))
-
     db.commit()
 
 
@@ -79,9 +90,17 @@ def init_db(app):
     with app.app_context():
         db = get_db()
 
-        with app.open_resource('./schema.sql') as schema:
+        with app.open_resource('./parameters_schema.sql') as schema:
             try:
                 db.executescript(schema.read().decode('utf8'))
             except sqlite3.OperationalError as e:
                 print(e)
         db.commit()
+
+        with app.open_resource('./users_schema.sql') as schema:
+            try:
+                db.executescript(schema.read().decode('utf8'))
+            except sqlite3.OperationalError as e:
+                print(e)
+        db.commit()
+
