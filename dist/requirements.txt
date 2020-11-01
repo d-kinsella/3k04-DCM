@@ -1,0 +1,2 @@
+pyserial~=3.4
+Flask~=0.10.1

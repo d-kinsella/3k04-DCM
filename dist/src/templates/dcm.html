@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href={{url_for('static', filename='index.css')}}>
+</head>
+<body>
+    <div class="body-container">
+        {% if device_id %}
+            <h3>Device connected: {{ device_id }}</h3>
+        {% else %}
+            <h3>No device detected </h3>
+        {% endif %}
+        <form action="http://localhost:5000/dcm" method="get">
+            <input type="submit" value="Refresh Device Status">
+        </form>
+        <h1>Welcome {{ user }}</h1>
+        <h2>Select Operating Mode</h2>
+        {% if submission_success == "True"%}
+            <p>Submission Successful</p>
+        {% elif submission_success == "False" %}
+            {% if invalid_parameters %}
+                <p>Invalid <u>{{invalid_parameters}}</u>, undefined or out of range</p>
+            {% endif %}
+            {% if not device_id %}
+                <p><u>No device detected</u></p>
+            {% endif %}
+        {% endif %}
+        {% for type in ["AOO","VOO","AAI","VVI"] %}
+            <input type="button" value={{type}} onclick=showForm("{{type}}")>
+        {% endfor %}
+        {% with mode="AOO"%}
+            {% include "parameter-form.html"%}
+        {% endwith %}
+        {% with mode="AAI"%}
+            {% include "parameter-form.html"%}
+        {% endwith %}
+        {% with mode="VOO"%}
+            {% include "parameter-form.html"%}
+        {% endwith %}
+        {% with mode="VVI"%}
+            {% include "parameter-form.html"%}
+        {% endwith %}
+        <form action="http://localhost:5000/logout" method="post">
+            <input type="submit" value="Logout">
+        </form>
+    </div>
+</body>
+<script type="text/javascript">
+    function showForm(type){
+        let form_containers = document.getElementsByClassName("param-container");
+        for(i = 0; i < form_containers.length; i++){
+            if (form_containers[i].id == type + "-form"){
+                form_containers[i].style.display = "";
+            }
+            else{
+            form_containers[i].style.display = "none";
+            }
+        }
+    }
+</script>
+</html>

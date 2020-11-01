@@ -1,0 +1,23 @@
+body {
+    text-align: center;
+    padding: 50px
+}
+u{
+    color:red;
+}
+.body-container{
+    border: thin solid rgb(153, 153, 153);
+    border-radius: 20px;
+    width: 800px;
+    height: auto;
+    margin: auto auto;
+    padding: 10px;
+}
+
+.login-form > h1 {
+    margin: 2em 0 .5em 0;
+}
+
+.login-form > input {
+    margin-top: .5em;
+}
