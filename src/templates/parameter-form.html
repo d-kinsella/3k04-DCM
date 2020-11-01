@@ -8,26 +8,26 @@
         <h4>Serial Port</h4>
         <input type="text" name="serial_port" placeholder="USB5">
         <h4>Lower Rate Limit</h4>
-        {% if current_params and current_params["mode"] == mode %}
-            <input type="text" name="lower_rate_limit" placeholder="60" value={{current_params["lower_rate_limit"]}}>
+        {% if stored_params and stored_params["mode"] == mode %}
+            <input type="text" name="lower_rate_limit" placeholder="60" value={{stored_params["lower_rate_limit"]}}>
             <h4>Upper Rate Limit</h4>
-            <input type="text" name="upper_rate_limit" placeholder="60" value={{current_params["upper_rate_limit"]}}>
+            <input type="text" name="upper_rate_limit" placeholder="60" value={{stored_params["upper_rate_limit"]}}>
 
             {% if mode[0] == "A" %}
                 <h4>Atrial Amplitude</h4>
-                <input type="text" name="atrial_amplitude" placeholder="60" value={{current_params["atrial_amplitude"]}}>
+                <input type="text" name="atrial_amplitude" placeholder="60" value={{stored_params["atrial_amplitude"]}}>
                 <h4>Atrial Pulse Width</h4>
-                <input type="text" name="atrial_pulse_width" placeholder="60" value={{current_params["atrial_pulse_width"]}}>
+                <input type="text" name="atrial_pulse_width" placeholder="60" value={{stored_params["atrial_pulse_width"]}}>
                 <h4>Atrial Refractory Period (ARP)</h4>
-                <input type="text" name="arp" placeholder="60" value={{current_params["arp"]}}>
+                <input type="text" name="arp" placeholder="60" value={{stored_params["arp"]}}>
 
             {% elif mode[0] == "V" %}
                 <h4>Ventricle Amplitude</h4>
-                <input type="text" name="ventricle_amplitude" placeholder="60" value={{current_params["ventricle_amplitude"]}}>
+                <input type="text" name="ventricle_amplitude" placeholder="60" value={{stored_params["ventricle_amplitude"]}}>
                 <h4>Ventricle Pulse Width</h4>
-                <input type="text" name="ventricle_pulse_width" placeholder="60" value={{current_params["ventricle_pulse_width"]}}>
+                <input type="text" name="ventricle_pulse_width" placeholder="60" value={{stored_params["ventricle_pulse_width"]}}>
                 <h4>Ventricle Refractory Period (VRP)</h4>
-                <input type="text" name="vrp" placeholder="60" value={{current_params["vrp"]}}>
+                <input type="text" name="vrp" placeholder="60" value={{stored_params["vrp"]}}>
             {% endif %}
         {% else %}
             <input type="text" name="lower_rate_limit" placeholder="60">

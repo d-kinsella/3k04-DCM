@@ -12,8 +12,8 @@ def get_num_users():
 
 def get_user_params(user, device_connection):
     try:
-        cursor = get_db().execute('SELECT * FROM parameters WHERE user_id='
-                                  '(SELECT id FROM users WHERE username=?) AND device_id=?', (user,device_connection))
+        cursor = get_db().execute('SELECT * FROM parameters WHERE username=?'
+                                  'AND device_id=?', (user, device_connection))
         result = cursor.fetchone()
         cursor.close()
         return result
@@ -35,7 +35,7 @@ def create_parameters(parameter_data, user, device_id):
     sql_query = ''' 
         INSERT INTO parameters 
         (
-            user_id,
+            username,
             device_id,
             mode,
             lower_rate_limit,
@@ -47,8 +47,8 @@ def create_parameters(parameter_data, user, device_id):
             ventricle_pulse_width,
             vrp
         )
-        VALUES((SELECT id FROM users WHERE username=?),?,?,?,?,?,?,?,?,?,?)
-        ON CONFLICT (user_id, device_id) DO UPDATE SET 
+        VALUES(?,?,?,?,?,?,?,?,?,?,?)
+        ON CONFLICT (username, device_id) DO UPDATE SET 
             mode=?,
             lower_rate_limit=?,
             upper_rate_limit=?,
@@ -103,4 +103,3 @@ def init_db(app):
             except sqlite3.OperationalError as e:
                 print(e)
         db.commit()
-

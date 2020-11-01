@@ -7,27 +7,28 @@
 </head>
 <body>
     <div class="body-container">
-        {% if device_connection %}
-            <h3>Device connected: {{device_connection}}</h3>
+        {% if device_id %}
+            <h3>Device connected: {{ device_id }}</h3>
         {% else %}
             <h3>No device detected </h3>
         {% endif %}
         <form action="http://localhost:5000/dcm" method="get">
             <input type="submit" value="Refresh Device Status">
         </form>
-        <h1>Select Operating Mode</h1>
-        {% if success == "True"%}
+        <h1>Welcome {{ user }}</h1>
+        <h2>Select Operating Mode</h2>
+        {% if submission_success == "True"%}
             <p>Submission Successful</p>
-        {% elif success == "False" %}
+        {% elif submission_success == "False" %}
             {% if invalid_parameters %}
-                <p><u>Invalid {{invalid_parameters}}</u> undefined or out of range</p>
+                <p>Invalid <u>{{invalid_parameters}}</u>, undefined or out of range</p>
             {% endif %}
-            {% if not device_connection %}
+            {% if not device_id %}
                 <p><u>No device detected</u></p>
             {% endif %}
         {% endif %}
         {% for type in ["AOO","VOO","AAI","VVI"] %}
-            <input type="button" value={{type}} onclick=includeHTML("{{type}}")>
+            <input type="button" value={{type}} onclick=showForm("{{type}}")>
         {% endfor %}
         {% with mode="AOO"%}
             {% include "parameter-form.html"%}
@@ -47,7 +48,7 @@
     </div>
 </body>
 <script type="text/javascript">
-    function includeHTML(type){
+    function showForm(type){
         let form_containers = document.getElementsByClassName("param-container");
         for(i = 0; i < form_containers.length; i++){
             if (form_containers[i].id == type + "-form"){

@@ -9,8 +9,8 @@
     <div class="body-container">
         <form class="signup-form" action="http://localhost:5000/signup" method="post">
             <h1>Register a new user</h1>
-            {% if failed == True %}
-                <u> <h3> Signup attempt failed due to {{ error_msg }}, try again </h3> </u>
+            {% if signup_failed == True %}
+                <u> <h3> Signup attempt failed due to {{ error_msg }}</h3> </u>
             {% endif %}
             <input type="text" name="username" placeholder="username">
             <br>
@@ -18,6 +18,10 @@
             <br>
             <br>
             <input type="submit" value="submit">
+        </form>
+        <br>
+        <form action="http://localhost:5000/" method="get">
+            <input type="submit" value="Back">
         </form>
     </div>
 </body>
