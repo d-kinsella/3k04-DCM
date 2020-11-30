@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href={{url_for('static', filename='index.css')}}>
+</head>
+<body>
+    <div class="body-container">
+        <h1>Welcome</h1>
+        <form class="login-form" action="http://localhost:5000/login" method="post">
+            <h1>Login</h1>
+            {% if login_failed %}
+                <u> <h3> Login attempt failed, try again </h3> </u>
+            {% endif %}
+            <input type="text" name="username" placeholder="username">
+            <br>
+            <input type="password" name="password" placeholder="password">
+            <br>
+            <br>
+            <input type="submit" value="login">
+        </form>
+        <br>
+        <button type="button" onclick="window.location.href='{{ url_for( 'signup' ) }}';">New User</button>
+    </div>
+</body>
+</html>

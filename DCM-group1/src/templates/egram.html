@@ -1,0 +1,140 @@
+<div>
+
+    <canvas id=myChart></canvas>
+    <input type="button" onclick="toggleAtr()" value="Toggle Atrial">
+    <input type="button" onclick="toggleVent()" value="Toggle Ventricular">
+    <form>
+        Choose Display gain
+        <input type="radio" name="gainChoice" id="half" onclick="setGain(0.5)" checked="true">x0.5
+        <input type="radio" name="gainChoice" id="one" onclick="setGain(1)">x1
+        <input type="radio" name="gainChoice" id="five" onclick="setGain(5)">x5
+    </form>
+    </div>
+<script>
+	Chart.defaults.global.animation.duration = 0
+	console.log(chart)
+	var mode = {
+		atrium:false,
+		ventricle: false
+	}
+
+	var display_gain = 0.5
+
+	function setGain(gain){
+        chart.data.datasets[0].data= chart.data.datasets[0].data.map(function(x) { return x / display_gain * gain; })
+        chart.data.datasets[1].data= chart.data.datasets[1].data.map(function(x) { return x / display_gain * gain; })
+        display_gain = gain
+        chart.update()
+    }
+
+	var timeCount = 0
+
+
+	var repeatHandle = window.setInterval(function() {
+	    egram_container = document.getElementById("egram-container");
+        if (egram_container.style.display != "none"){
+            addData()
+            StepTime()
+        }
+	}, 50);
+
+
+	function StepTime(){
+		timeCount = Math.round((timeCount + 0.05)*100)/100
+	}
+
+
+	function addData(){
+		get_new_points()
+		.then(res => {
+            console.log("Fetch Successful")
+		    if (res.status === 200){
+                console.log(chart)
+                console.log(res)
+                newLabel = ""
+                if (chart.data.labels.length >= 100){
+                    chart.data.labels=chart.data.labels.splice(1)
+                    chart.data.datasets[0].data = chart.data.datasets[0].data.splice(1)
+                    chart.data.datasets[1].data = chart.data.datasets[1].data.splice(1)
+                }
+                chart.data.labels.push(newLabel)
+                if (mode.atrium)
+                    chart.data.datasets[0].data.push(display_gain*res.atrium)
+                else
+                    chart.data.datasets[0].data.push(undefined)
+                if (mode.ventricle)
+                    chart.data.datasets[1].data.push(display_gain*res.ventricle)
+                else
+                    chart.data.datasets[1].data.push(undefined)
+                chart.update()
+            }
+            else{
+                throw new Error()
+            }
+		})
+		.catch( err => {
+		    egram_container = document.getElementById("egram-container");
+		    egram_container.style.display = "none"
+		    showEgramError()
+		})
+	}
+	function toggleAtr(){
+		mode.atrium = !mode.atrium
+	}
+
+	function toggleVent(){
+		mode.ventricle = !mode.ventricle
+	}
+
+	var chartContext = document.getElementById('myChart').getContext('2d')
+	var chart = new Chart(chartContext, {
+		type: 'line',
+
+		data:{
+			datasets: [{
+				label: "Atrial Egram",
+				borderColor: 'rgb(255, 99, 132)',
+				fill: false,
+				data: [],
+				lineTension:0
+			},
+			{
+				label: "Ventricular Egram",
+				borderColor: 'rgb(20, 99, 132)',
+				fill: false,
+				data: [],
+				lineTension:0
+			}]
+		},
+
+		options:{
+			display: true,
+			title: {
+				text: 'Electrogram'
+			},
+			scales: {
+				xAxes: [{
+					display: true,
+					scaleLabel: {
+						display: true,
+						labelString: 'Time (1 tick = 50ms)'
+					}
+				}],
+				yAxes: [{
+					display: true,
+					scaleLabel: {
+						display: true,
+						labelString: 'Voltage (V)'
+					}
+				}]
+			}
+		}
+
+	})
+
+	async function get_new_points(){
+	    let response = await fetch("http://localhost:5000/get_egram_data", {method:"GET"})
+        let response_data = await response.json()
+		return response_data
+	}
+</script>
